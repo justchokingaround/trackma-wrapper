@@ -1,15 +1,24 @@
 #!/bin/sh
 # ik shellcheck doesnt like it and it's not posix compliant, but cba to fix it
-# I know there is a lot of code duplication in this script, I'll fix/clean it up later
+# i also am aware there is a lot of code duplication in this script, I'll fix/clean it up later
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	SED="gsed"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	SED="sed"
 fi
 
-PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\ninfo\naltname\nretrieve"|fzf)
+# Quits Terminal application on exit (MacOS only)
+# trap ctrl_c EXIT
+# ctrl_c() {
+# 	osascript -e 'quit app "Terminal"'
+# }
+
+# Exit immediately if a command exits with a non-zero status
+set -e
 
 main() {
+	tput clear
+	PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\ninfo\naltname\nretrieve"|fzf)
   case $PROMPT in
     watch|binge)
       INDEX=$(printf "filter watching\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|
@@ -43,7 +52,7 @@ main() {
       ;;
     list)
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
-      printf "filter $STATUS\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'
+      printf "filter $STATUS\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|less
       ;;
     update_episodes|update_status)
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
@@ -72,4 +81,7 @@ main() {
       printf "retrieve"|trackma
   esac
 }
-main
+
+while true; do
+	main
+done
