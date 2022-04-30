@@ -21,16 +21,13 @@ main() {
 	PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\ninfo\naltname\nretrieve\nsend"|fzf)
   case $PROMPT in
     watch|binge)
-      INDEX=$(printf "filter watching\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|
+      INDEX=$(printf "filter watching\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|
         awk '{print $2}')
       ANIME="$(trackma -a 1 info "$INDEX"|head -n 1)"
       EPNUM="$(trackma -a 1 search "$ANIME"|grep -Eo '[0-9]{1,3} / [0-9]{1,3}'|cut -d "/" -f 1)"
       if [[ $PROMPT == "watch" ]]; then
-				if [[ $ANIME == "86 EIGHTY-SIX" ]]; then
-					python3 ~/dev/animdl/runner.py stream "86" -r $((EPNUM+1)) --auto --index 1
-				else
-        python3 ~/dev/animdl/runner.py stream "$ANIME" -r $((EPNUM+1))
-				fi
+				animdl stream "$ANIME" $(($EPNUM+1))
+				# python3 ~/dev/animdl/runner.py stream "$ANIME" -r $((EPNUM+1))
         # ani-cli -a $((EPNUM+1)) "$ANIME"
         # mpv $(fd "$query" /Volumes/EXTERNAL/chokerman/media/anime)
         read -r -p "Do you want to set this episode as watched? [Y/n]" response
@@ -38,7 +35,8 @@ main() {
          trackma -a 1 update "$INDEX" $((EPNUM+1))
       fi
       else
-        python3 ~/dev/animdl/runner.py stream "$ANIME" -r $((EPNUM+1))-
+        animdl stream "$ANIME" -r $((EPNUM+1))-
+        # python3 ~/dev/animdl/runner.py stream "$ANIME" -r $((EPNUM+1))-
         # TODO: implement binge watch for ani-cli
         # ani-cli -a $((EPNUM+1)) "$ANIME"
         read -r -p "How many episodes have you watched? " EPWATCHED
@@ -47,45 +45,45 @@ main() {
       ;;
     add)
       read -p "What anime do you want to add? " ANIME
-      ADDINDEX=$(printf "add $ANIME\n "|trackma|grep -E '[0-9]{1,2}:'|fzf|cut -d ':' -f1)
-      printf "add $ANIME\n$ADDINDEX"|trackma > /dev/null
+      ADDINDEX=$(printf "add $ANIME\n "|trackma -a 1|grep -E '[0-9]{1,2}:'|fzf|cut -d ':' -f1)
+      printf "add $ANIME\n$ADDINDEX"|trackma -a 1 > /dev/null
       ;;
     delete)
-      INDEX="$(printf "ls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
-      printf "delete $INDEX\ny"|trackma > /dev/null
+      INDEX="$(printf "ls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
+      printf "delete $INDEX\ny"|trackma -a 1 > /dev/null
       ;;
     list)
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
-      printf "filter $STATUS\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|less
+      printf "filter $STATUS\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|less
       ;;
     update_episodes|update_status)
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
-      INDEX="$(printf "filter $STATUS\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|
+      INDEX="$(printf "filter $STATUS\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|
         $SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
       if [[ $PROMPT == "update_episodes" ]]; then
         read -p "How many episodes have you watched? " NEWEPISODE
-        printf "filter $STATUS\nupdate $INDEX $NEWEPISODE"|trackma > /dev/null
+        printf "filter $STATUS\nupdate $INDEX $NEWEPISODE"|trackma -a 1 > /dev/null
       else
         NEWSTATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
-        printf "filter $STATUS\nstatus $INDEX $NEWSTATUS"|trackma > /dev/null
+        printf "filter $STATUS\nstatus $INDEX $NEWSTATUS"|trackma -a 1 > /dev/null
       fi
       ;;
     info)
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
-      INDEX="$(printf "filter $STATUS\nls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|
+      INDEX="$(printf "filter $STATUS\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|
           $SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
-      printf "filter $STATUS\ninfo $INDEX"|trackma|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'
+      printf "filter $STATUS\ninfo $INDEX"|trackma -a 1|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'
       ;;
     altname)
-      INDEX="$(printf "ls"|trackma|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
+      INDEX="$(printf "ls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
       read -p "What is the new name? " NEWNAME
-      printf "altname $INDEX $NEWNAME"|trackma > /dev/null
+      printf "altname $INDEX $NEWNAME"|trackma -a 1 > /dev/null
       ;;
     retrieve)
-      printf "retrieve"|trackma
+      printf "retrieve"|trackma -a 1
 			;;
     send)
-      printf "send"|trackma
+      printf "send"|trackma -a 1
 			;;
   esac
 }
