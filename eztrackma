@@ -26,7 +26,7 @@ main() {
       ANIME="$(trackma -a 1 info "$INDEX"|head -n 1)"
       EPNUM="$(trackma -a 1 search "$ANIME"|grep -Eo '[0-9]{1,3} / [0-9]{1,3}'|cut -d "/" -f 1)"
       if [[ $PROMPT == "watch" ]]; then
-				animdl stream "$ANIME" $(($EPNUM+1))
+				animdl stream "$ANIME" -r $((EPNUM+1))
 				# python3 ~/dev/animdl/runner.py stream "$ANIME" -r $((EPNUM+1))
         # ani-cli -a $((EPNUM+1)) "$ANIME"
         # mpv $(fd "$query" /Volumes/EXTERNAL/chokerman/media/anime)
