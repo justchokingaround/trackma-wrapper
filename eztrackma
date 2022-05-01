@@ -72,7 +72,7 @@ main() {
       STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|fzf)
       INDEX="$(printf "filter $STATUS\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|
           $SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
-      printf "filter $STATUS\ninfo $INDEX"|trackma -a 1|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'
+      printf "filter $STATUS\ninfo $INDEX"|trackma -a 1|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'|less
       ;;
     altname)
       INDEX="$(printf "ls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|fzf|awk '{print $2}')"
