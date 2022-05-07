@@ -5,7 +5,6 @@ case "$(uname -s)" in
 	Darwin*) SED="gsed" ;;
 	*) SED="sed" ;;
 esac
-fi
 FZF="fzf -0 -1 --ansi"
 
 # Quits Terminal application on exit (MacOS only)
