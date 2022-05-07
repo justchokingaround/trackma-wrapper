@@ -18,7 +18,7 @@ set -e
 
 while true; do
 tput clear
-PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\ninfo\naltname\nretrieve\nsend"|$FZF -i --prompt="Choose an action: ")
+PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\nscore\ninfo\naltname\nretrieve\nsend"|$FZF -i --prompt="Choose an action: ")
 case $PROMPT in
 	watch|binge)
 		INDEX=$(printf "filter watching\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|$FZF -i --prompt="Choose an anime to watch: "|
@@ -67,6 +67,13 @@ case $PROMPT in
 			NEWSTATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
 			printf "filter $STATUS\nstatus $INDEX $NEWSTATUS"|trackma -a 1 > /dev/null
 		fi
+		;;
+	score)
+		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
+		INDEX="$(printf "filter $STATUS\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|
+			$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|$FZF -i --prompt="Choose an anime: "|awk '{print $2}')"
+		read -p "What score do you want to give this anime? " SCORE
+		printf "filter $STATUS\nscore $INDEX $SCORE"|trackma -a 1 > /dev/null
 		;;
 	info)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
