@@ -18,7 +18,7 @@ set -e
 
 while true; do
 tput clear
-PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\nscore\ninfo\naltname\nretrieve\nsend"|$FZF -i --prompt="Choose an action: ")
+PROMPT=$(printf "watch\nbinge\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\nscore\ninfo\naltname\nretrieve\nsend\nlist_sorted_by_score"|$FZF -i --prompt="Choose an action: ")
 case $PROMPT in
 	watch|binge)
 		INDEX=$(printf "filter watching\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|$FZF -i --prompt="Choose an anime to watch: "|
@@ -91,6 +91,10 @@ case $PROMPT in
 		;;
 	send)
 		printf "send"|trackma -a 1
+		;;
+	list_sorted_by_score)
+		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
+		printf "filter $STATUS\nsort my_score\nls"|trackma -a 1|$SED 's/\x1b\[[0-9;]*m//g'|$SED -n '/^|/,${p;/results/q}'|$SED '$ d'|less
 		;;
 esac
 done
