@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ik shellcheck doesnt like it and it's not posix compliant, but cba to fix it
 # i also am aware there is a lot of code duplication in this script, I'll fix/clean it up later
 case "$(uname -s)" in
