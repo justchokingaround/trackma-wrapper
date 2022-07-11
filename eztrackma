@@ -1,6 +1,7 @@
 #!/bin/sh
 
-FZF="fzf -0 -1 --ansi"
+FZF="fzf -0 -1 --ansi --height 10%"
+REGEX="\d+\s+(.+?)+\s+\d+\s+/\s+\d+\s+\d+"
 
 # Quits Terminal application on exit (MacOS only)
 # trap ctrl_c EXIT
@@ -17,8 +18,8 @@ PROMPT=$(printf "watch\nadd\ndelete\nlist\nupdate_episodes\nupdate_status\nscore
 	$FZF -i --prompt="Choose an action: ")
 case $PROMPT in
 	watch)
-		INDEX=$(printf "filter watching\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
-			$FZF -i --prompt="Choose an anime to watch: "|cut -d" " -f1)
+    CHOICE=$(printf "filter watching\nls"|trackma -a 1|grep -Eo "$REGEX"|$FZF -i --prompt="Choose an anime to watch: ")
+    INDEX=$(printf "%s" "$CHOICE"|cut -d" " -f1)
 		ANIME="$(trackma -a 1 info "$INDEX"|head -n 1)"
 		EPNUM="$(trackma -a 1 search "$ANIME"|sed -En "s/.*\.[[:space:]]+([0-9]*) \/.*/\1/p")"
 		animdl stream "$ANIME" -r $((EPNUM+1))
@@ -39,49 +40,49 @@ case $PROMPT in
 	add)
 		printf "What anime do you want to add? "
 		read -r ANIME
-		ADDINDEX=$(printf "%s" "add $ANIME\n "|trackma -a 1|grep -E '[0-9]{1,2}:'|$FZF -i --prompt="Choose the anime to add: "|cut -d ':' -f1)
-		printf "%s" "add $ANIME\n$ADDINDEX"|trackma -a 1 > /dev/null
+		ADDINDEX=$(printf "add %s\nls" "$ANIME"|trackma -a 1|grep -E '[0-9]{1,2}:'|$FZF -i --prompt="Choose the anime to add: "|cut -d ':' -f1)
+		printf "add %s\n%s" "$ANIME" "$ADDINDEX"|trackma -a 1 > /dev/null
 		;;
 	delete)
-		INDEX=$(printf "filter watching\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
+		INDEX=$(printf "filter watching\nls"|trackma -a 1|grep -Eo "$REGEX"|
 			$FZF -i --prompt="Choose an anime to delete: "|cut -d" " -f1)
-		printf "%s" "delete $INDEX\ny"|trackma -a 1 > /dev/null
+		printf "delete %s\ny" "$INDEX"|trackma -a 1 > /dev/null
 		;;
 	list)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-		printf "%s" "filter $STATUS\nls"|trackma -a 1|sed "s/\x1b\[[0-9;]*m//g"|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|less
+		printf "filter %s\nls" "$STATUS"|trackma -a 1|sed "s/\x1b\[[0-9;]*m//g"|grep -Eo "$REGEX"|less
 		;;
 	update_episodes|update_status)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-		INDEX="$(printf "%s" "filter $STATUS\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
+		INDEX="$(printf "filter %s\nls" "$STATUS"|trackma -a 1|grep -Eo "$REGEX"|
 			$FZF -i --prompt="Choose an anime: "|cut -d" " -f1)"
 		if [ "$PROMPT" = "update_episodes" ]; then
 			printf "How many episodes of this anime have you watched in total? "
 			read -r NEWEPISODE
-			printf "%s" "filter $STATUS\nupdate $INDEX $NEWEPISODE"|trackma -a 1 > /dev/null
+			printf "filter %s\nupdate %s %s" "$STATUS" "$INDEX" "$NEWEPISODE"|trackma -a 1 > /dev/null
 		else
 			NEWSTATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-			printf "%s" "filter $STATUS\nstatus $INDEX $NEWSTATUS"|trackma -a 1 > /dev/null
+			printf "filter %s\nstatus %s %s" "$STATUS" "$INDEX" "$NEWSTATUS"|trackma -a 1 > /dev/null
 		fi
 		;;
 	score)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-		INDEX="$(printf "%s" "filter $STATUS\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
+		INDEX="$(printf "filter %s\nls" "$STATUS"|trackma -a 1|grep -Eo "$REGEX"|
 			$FZF -i --prompt="Choose an anime: "|cut -d" " -f1)"
 		printf "What score do you want to give this anime? "
 		read -r SCORE
-		printf "%s" "filter $STATUS\nscore $INDEX $SCORE"|trackma -a 1 > /dev/null
+		printf "filter %s\nscore %s %s" "$STATUS" "$INDEX" "$SCORE"|trackma -a 1 > /dev/null
 		;;
 	info)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-		INDEX="$(printf "%s" "filter $STATUS\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
+		INDEX="$(printf "filter %s\nls" "$STATUS"|trackma -a 1|grep -Eo "$REGEX"|
 			$FZF -i --prompt="Choose an anime: "|cut -d" " -f1)"
-		printf "%s" "filter $STATUS\ninfo $INDEX"|trackma -a 1|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'|less
+		printf "filter %s\ninfo %s" "$STATUS" "$INDEX"|trackma -a 1|sed -n '/https/,/Status/p'|sed -e 's/<[^>]*>//g'|less
 		;;
 	altname)
 		printf "What is the new name? "
 		read -r NEWNAME
-		printf "%s" "altname $INDEX $NEWNAME"|trackma -a 1 > /dev/null
+		printf "altname %s %s" "$INDEX" "$NEWNAME"|trackma -a 1 > /dev/null
 		;;
 	retrieve)
 		printf "retrieve"|trackma -a 1
@@ -91,7 +92,7 @@ case $PROMPT in
 		;;
 	list_sorted_by_score)
 		STATUS=$(printf "watching\ncompleted\nrewatching\npaused\ndropped\nplantowatch"|$FZF -i --prompt="Choose a status: ")
-		printf "%s" "filter $STATUS\nsort my_score\nls"|trackma -a 1|grep -Eo "\d+\s+(.+?)\.+\s+\d+\s+/\s+\d+\s+\d+"|
+		printf "filter %s\nsort my_score\nls" "$STATUS"|trackma -a 1|grep -Eo "$REGEX"|
 			$FZF -i --prompt="Choose an anime: "|cut -d" " -f1
 		;;
 esac
