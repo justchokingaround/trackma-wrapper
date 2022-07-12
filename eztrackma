@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FZF="fzf -0 -1 --ansi --height 10%"
-REGEX="\d+\s+(.+?)+\s+\d+\s+/\s+\d+\s+\d+"
+REGEX="[0-9]+[[:space:]]+(.+?)+[[:space:]]+[0-9]+[[:space:]]+/[[:space:]]+[0-9]+[[:space:]]+[0-9]+"
 
 # Quits Terminal application on exit (MacOS only)
 # trap ctrl_c EXIT
